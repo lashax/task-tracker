@@ -86,8 +86,12 @@ public class ProjectServiceImpl implements ProjectService {
             project.setOwner(newOwner);
         }
 
-        project.setName(dto.getName());
-        project.setDescription(dto.getDescription());
+        if (dto.getOwnerId() != null) {
+            project.setName(dto.getName());
+        }
+        if (dto.getDescription() != null) {
+            project.setDescription(dto.getDescription());
+        }
 
         ProjectEntity updated = projectRepository.save(project);
         return projectMapper.toDto(updated);

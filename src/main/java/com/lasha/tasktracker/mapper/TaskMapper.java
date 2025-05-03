@@ -10,10 +10,12 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface TaskMapper {
 
+    @Mapping(target = "projectId", source = "project.id")
+    @Mapping(target = "assignedUserId", source = "assignedUser.id")
     TaskDTO toDto(TaskEntity task);
 
     @Mapping(target = "project.id", source = "projectId")
-    @Mapping(target = "assignedUser.id", source = "assignedUserId")
+    @Mapping(target = "assignedUser", ignore = true)
     TaskEntity toEntity(TaskDTO dto);
 
     List<TaskDTO> toDtoList(List<TaskEntity> tasks);
