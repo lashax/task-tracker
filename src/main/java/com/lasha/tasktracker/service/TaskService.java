@@ -9,8 +9,6 @@ import org.springframework.data.domain.Pageable;
 public interface TaskService {
     TaskDTO createTask(TaskDTO dto);
 
-    Page<TaskDTO> getAllTasks(TaskStatus status, TaskPriority priority, Pageable pageable);
-
     TaskDTO getTask(Long id);
 
     Page<TaskDTO> getTasksByProject(Long projectId, TaskStatus status, TaskPriority priority, Pageable pageable);

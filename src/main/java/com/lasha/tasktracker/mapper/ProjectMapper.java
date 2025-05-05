@@ -5,8 +5,6 @@ import com.lasha.tasktracker.entity.ProjectEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import java.util.List;
-
 @Mapper(componentModel = "spring")
 public interface ProjectMapper {
 
@@ -15,6 +13,4 @@ public interface ProjectMapper {
 
     @Mapping(target = "owner.id", source = "ownerId")
     ProjectEntity toEntity(ProjectDTO dto);
-
-    List<ProjectDTO> toDtoList(List<ProjectEntity> projects);
 }

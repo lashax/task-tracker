@@ -89,9 +89,8 @@ A RESTful task management API built with Spring Boot, featuring role‑based acc
 | Method | Path | Access | Description |
 |--------|------|--------|-------------|
 | POST | `/api/tasks` | MANAGER, ADMIN | Create task |
-| GET | `/api/tasks/all` | ADMIN | Paginated + filtered list of all tasks |
 | GET | `/api/tasks/project/{projectId}` | Owner, ADMIN | Paginated + filtered tasks by project |
-| GET | `/api/tasks` | USER (own) / ADMIN (any) | Paginated + filtered tasks by assignee |
+| GET | `/api/tasks` | Assignee, Owner, ADMIN | Paginated + filtered tasks by assignee |
 | GET | `/api/tasks/{id}` | Assignee, Owner, ADMIN | Get task |
 | PUT | `/api/tasks/{id}` | Assignee, Owner, ADMIN | Update task |
 | PUT | `/api/tasks/{id}/assign` | MANAGER (own project), ADMIN | Assign task |

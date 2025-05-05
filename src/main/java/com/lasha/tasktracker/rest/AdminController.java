@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminController {
@@ -22,7 +23,6 @@ public class AdminController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
             return ResponseEntity

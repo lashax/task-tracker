@@ -11,13 +11,17 @@ import com.lasha.tasktracker.repository.UserRepository;
 import com.lasha.tasktracker.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+@Transactional
 public class ProjectServiceImpl implements ProjectService {
 
     private final CurrentUser currentUser;
@@ -36,7 +40,7 @@ public class ProjectServiceImpl implements ProjectService {
                 throw new ApiException(HttpStatus.FORBIDDEN, "Only ADMIN can assign project owner");
             }
             UserEntity specifiedOwner = userRepository.findById(ownerIdFromDto)
-                    .orElseThrow(() -> new IllegalArgumentException("User was not found: " + ownerIdFromDto));
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User was not found: " + ownerIdFromDto));
             entity.setOwner(specifiedOwner);
         } else {
             entity.setOwner(current);
@@ -47,14 +51,16 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProjectDTO getProject(Long id) {
         ProjectEntity project = projectRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Project was not found: " + id));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Project was not found: " + id));
         ensureAccess(project);
         return projectMapper.toDto(project);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProjectDTO> getAllProjects() {
         UserEntity current = currentUser.get();
         List<ProjectEntity> projects;
@@ -71,7 +77,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDTO updateProject(Long id, ProjectDTO dto) {
         ProjectEntity project = projectRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Project was not not found: " + id));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Project was not not found: " + id));
 
         UserEntity current = currentUser.get();
         ensureAccess(project);
@@ -82,11 +88,11 @@ public class ProjectServiceImpl implements ProjectService {
                 throw new ApiException(HttpStatus.FORBIDDEN, "Only ADMIN can change project owner");
             }
             UserEntity newOwner = userRepository.findById(newOwnerId)
-                    .orElseThrow(() -> new IllegalArgumentException("User was not found: " + newOwnerId));
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User was not found: " + newOwnerId));
             project.setOwner(newOwner);
         }
 
-        if (dto.getOwnerId() != null) {
+        if (dto.getName() != null) {
             project.setName(dto.getName());
         }
         if (dto.getDescription() != null) {
@@ -100,7 +106,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void deleteProject(Long id) {
         ProjectEntity project = projectRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Project was not found: " + id));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Project was not found: " + id));
         ensureAccess(project);
         projectRepository.delete(project);
     }

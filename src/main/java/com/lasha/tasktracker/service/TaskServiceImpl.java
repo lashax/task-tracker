@@ -18,10 +18,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TaskServiceImpl implements TaskService {
 
     private final CurrentUser currentUser;
@@ -31,6 +34,7 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
 
     @Override
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     public TaskDTO createTask(TaskDTO dto) {
         UserEntity caller = currentUser.get();
 
@@ -50,25 +54,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Page<TaskDTO> getAllTasks(TaskStatus status,
-                                     TaskPriority priority,
-                                     Pageable pageable) {
-        UserEntity caller = currentUser.get();
-        if (caller.getRole() != Role.ADMIN) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Only ADMIN can view all tasks");
-        }
-        Specification<TaskEntity> spec = Specification.where(null);
-        if (status != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
-        }
-        if (priority != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("priority"), priority));
-        }
-        return taskRepository.findAll(spec, pageable)
-                .map(taskMapper::toDto);
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public TaskDTO getTask(Long id) {
         TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Task not found: " + id));
@@ -77,6 +63,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    @Transactional(readOnly = true)
     public Page<TaskDTO> getTasksByProject(Long projectId, TaskStatus status, TaskPriority priority, Pageable pageable) {
         ProjectEntity project = projectRepository.findById(projectId).orElseThrow(() ->
                 new ApiException(HttpStatus.NOT_FOUND, "Project not found: " + projectId));
@@ -100,6 +88,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<TaskDTO> getTasksByAssignedUser(Long userId, TaskStatus status, TaskPriority priority, Pageable pageable) {
         UserEntity caller = currentUser.get();
         UserEntity target;
@@ -156,6 +145,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     public TaskDTO assignTask(Long taskId, Long userId) {
         UserEntity caller = currentUser.get();
 
